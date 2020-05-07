@@ -230,9 +230,15 @@
           const xhr = new XMLHttpRequest();
           const pdiv = document.getElementById("progress");
           let showTimer = 0;
+          let abortTimer = 0;
+
+          const retry = () => {
+              xhr.abort();
+              getLazyAsset(url, filename, callback);
+          }
 
           xhr.onreadystatechange = function() {
-              if (xhr.readyState == XMLHttpRequest.DONE) {
+              if (xhr.readyState == XMLHttpRequest.DONE && xhr.status >= 200 && xhr.status < 400) {
                   pdiv.innerHTML = `${filename} - done`;
                   hideTimer = setTimeout(() => {
                       pdiv.style.opacity = '0';
@@ -241,12 +247,16 @@
                   callback();
 
                   clearTimeout(showTimer);
+                  clearTimeout(abortTimer);
               }
           }
           xhr.onprogress = function (event) {
               const loaded = Math.round(event.loaded / 1024);
               const total = Math.round(event.total / 1024);
               pdiv.innerHTML = `${filename} - ${loaded}KB / ${total}KB`;
+
+              clearTimeout(abortTimer);
+              abortTimer = setTimeout(retry, 3000);
           };
           xhr.open('GET', url);
           xhr.send();
@@ -256,6 +266,8 @@
           showTimer = setTimeout(() => {
               pdiv.style.opacity = '0.5';
           }, 100);
+
+          abortTimer = setTimeout(retry, 3000);
 
           if (hideTimer) {
               clearTimeout(hideTimer);
@@ -274,7 +286,7 @@
           });
       }, 500);
     </script>
-    
+
     <!-- <script async type="text/javascript" src="mkxp.js"></script> -->
   </body>
 </html>
