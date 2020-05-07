@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <script src="js/localforage.min.js"></script>
+    <script src="gameasync/mapping.js"></script>
 
     <title>MKXP</title>
     <style>
@@ -134,8 +135,27 @@
           });
       }
 
+      var createDummies = function() {
+          // Base directory
+          FS.mkdir('/game');
+
+          // Create dummy objects
+          Object.values(mapping).forEach((file) => {
+              // Get filename
+              const filename = '/game/' + file.split("?")[0];
+
+              // Check if folder
+              if (file.endsWith('h=')) {
+                  return FS.mkdir(filename);
+              }
+
+              // Create dummy file
+              FS.writeFile(filename, '1');
+          });
+      };
+
       var Module = {
-        preRun: [],
+        preRun: [createDummies],
         postRun: [loadFiles],
         noAudioDecoding: true,
         print: (function() {
@@ -183,7 +203,10 @@
               })
               .then(function(jsonResponse) {
                   jsonResponse.forEach((f) => {
-                      fetch('gameasync/' + f).then().catch();
+                      const url = mapping[f.toLowerCase().replace(new RegExp("\\.[^/.]+$"), "")];
+                      if (!url) return;
+
+                      fetch('gameasync/' + url).then().catch();
                   });
               });
       };
