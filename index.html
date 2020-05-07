@@ -29,7 +29,7 @@
         }
         #spinner {
             position: fixed;
-            bottom: 20px;
+            bottom: 40px;
             left: 20px;
             opacity: 0.5;
         }
@@ -80,6 +80,16 @@
             height: 25px;
             width: 25px;
       }
+
+      #progress {
+          background-color: white;
+          opacity: 0.6;
+          position: fixed;
+          bottom: 0; left: 0;
+          color: black;
+          padding: 3px 10px;
+          border-top-right-radius: 5px;
+      }
     </style>
   </head>
   <body>
@@ -87,6 +97,7 @@
         <div style="overflow:visible;" id="spinner">
             <div class="spinner"></div>
         </div>
+        <div id="progress">Loading ...</div>
     
         <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1 width="640" height="480"></canvas>
     </div>
@@ -179,11 +190,11 @@
       };
 
       window.setBusy = function() {
-          document.getElementById('spinner').style.display = "block";
+          document.getElementById('spinner').style.opacity = "0.5";
       };
       
       window.setNotBusy = function() {
-          document.getElementById('spinner').style.display = "none";
+          document.getElementById('spinner').style.opacity = "0";
       };
 
       function fullscreen() {
@@ -206,13 +217,65 @@
                       const url = mapping[f.toLowerCase().replace(new RegExp("\\.[^/.]+$"), "")];
                       if (!url) return;
 
-                      fetch('gameasync/' + url).then().catch();
+                      // Preload the asset
+                      setTimeout(() => {
+                          fetch('gameasync/' + url).then().catch();
+                      }, 1000);
                   });
               });
       };
+
+      var hideTimer = 0;
+      function getLazyAsset(url, filename, callback) {
+          const xhr = new XMLHttpRequest();
+          const pdiv = document.getElementById("progress");
+          let showTimer = 0;
+
+          xhr.onreadystatechange = function() {
+              if (xhr.readyState == XMLHttpRequest.DONE) {
+                  pdiv.innerHTML = `${filename} - done`;
+                  hideTimer = setTimeout(() => {
+                      pdiv.style.opacity = '0';
+                      hideTimer = 0;
+                  }, 500);
+                  callback();
+
+                  clearTimeout(showTimer);
+              }
+          }
+          xhr.onprogress = function (event) {
+              const loaded = Math.round(event.loaded / 1024);
+              const total = Math.round(event.total / 1024);
+              pdiv.innerHTML = `${filename} - ${loaded}KB / ${total}KB`;
+          };
+          xhr.open('GET', url);
+          xhr.send();
+
+          pdiv.innerHTML = `${filename} - starting`;
+
+          showTimer = setTimeout(() => {
+              pdiv.style.opacity = '0.5';
+          }, 100);
+
+          if (hideTimer) {
+              clearTimeout(hideTimer);
+              hideTimer = 0;
+          }
+      }
     </script>
 
-    <script async type="text/javascript" src="mkxp.js"></script>
+    <script>
+      // Load wasm then initialize
+      setTimeout(() => {
+          getLazyAsset('mkxp.wasm', 'Game engine', () => {
+              const s = document.createElement('script');
+              s.setAttribute('src', 'mkxp.js');
+              document.body.appendChild(s);
+          });
+      }, 500);
+    </script>
+    
+    <!-- <script async type="text/javascript" src="mkxp.js"></script> -->
   </body>
 </html>
 
