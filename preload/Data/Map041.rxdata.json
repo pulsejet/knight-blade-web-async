@@ -1,11 +1,11 @@
 [
 "Graphics/Pictures/ms_back.png",
-"Audio/SE/kn_elec.wav",
+"Audio/SE/kn_elec.ogg",
 "Graphics/Characters/ag2.png",
 "Graphics/Characters/ag2_c.png",
 "Graphics/Characters/kn_box.png",
-"Audio/SE/kn_mgun.wav",
-"Audio/SE/kn_gakin.wav",
+"Audio/SE/kn_mgun.ogg",
+"Audio/SE/kn_gakin.ogg",
 "Graphics/Pictures/p_fortcity.png",
-"Audio/SE/kn_liftoff.wav"
+"Audio/SE/kn_liftoff.ogg"
 ]
