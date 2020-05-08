@@ -115,6 +115,8 @@
 
     <script type='text/javascript'>
       var namespace = 'kne';
+      var wTitle = 'KN_E'
+
       window.saveFile = function(filename) {
           const buf = FS.readFile('/game/' + filename);
           const b64 = btoa(String.fromCharCode.apply(null, buf));
@@ -206,6 +208,8 @@
       };
 
       window.fileLoadedAsync = function(file) {
+          document.title = wTitle;
+
           if (!(/.*Map.*rxdata/i.test(file))) return;
 
           fetch('preload/' + file + '.json')
@@ -274,6 +278,8 @@
               hideTimer = 0;
           }
       }
+
+      document.title = wTitle;
     </script>
 
     <script>
